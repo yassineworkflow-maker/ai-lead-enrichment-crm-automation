@@ -1,0 +1,494 @@
+{
+  "name": "AI Lead Enrichment & CRM Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-enrichment",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        80,
+        48
+      ],
+      "id": "6ee3b83c-24a0-4c35-8e07-050c884e1066",
+      "name": "Webhook",
+      "webhookId": "49b45858-e56c-4131-8a9b-b2f7f11d8abc"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the following lead and enrich the lead information for CRM purposes.\n\nName: {{ $json.body.name }}\nEmail: {{ $json.body.email }}\nCompany: {{ $json.body.company }}\nPhone: {{ $json.body.phone }}\nBusiness Need: {{ $json.body.business_need }}\nBudget: {{ $json.body.budget }}\n\nDetermine:\n- Lead quality: High, Medium, or Low\n- Priority: High, Medium, or Low\n- Whether the lead appears to be a good business opportunity\n- A short reason for the evaluation\n\nReturn a clear and concise analysis.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        304,
+        -16
+      ],
+      "id": "17841d8f-4052-4bfa-8620-2aaab4f896ae",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        272,
+        224
+      ],
+      "id": "14e0dd9b-77c4-4776-a806-97025bd937a7",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "6Ci9I5vgyr0bDXrb",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"lead_quality\": \"Low\",\n  \"priority\": \"Low\",\n  \"good_opportunity\": false,\n  \"reason\": \"Contact information requires verification and the budget is unclear.\",\n  \"recommended_action\": \"Verify lead information before further follow-up.\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        528,
+        240
+      ],
+      "id": "8c8bd1c2-a96e-499e-9ace-47f3034b0a2c",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.lead_quality }}",
+                    "rightValue": "High",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "24643ee9-5a8d-4fc1-8356-23b737952f8d"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "High Quality Leads"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "cb671083-ce45-4c7e-9f4e-24744b632ca7",
+                    "leftValue": "={{ $json.output.lead_quality }}",
+                    "rightValue": "Medium",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Medium Quality Leads"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3f2d30ba-a26d-4bcd-9c66-b5f441aeb54f",
+                    "leftValue": "={{ $json.output.lead_quality }}",
+                    "rightValue": "Low",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Low Quality Leads"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        608,
+        -64
+      ],
+      "id": "7697e58e-b3b3-48d8-9439-fe5bb785ef2c",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6e94885c-0003-4b85-968d-90ced437ad3f",
+              "name": "name",
+              "value": "={{ $('Webhook').first().json.body.name }}",
+              "type": "string"
+            },
+            {
+              "id": "ee586d8c-e8ed-4ed2-8ae3-9f686618d0f2",
+              "name": "email",
+              "value": "={{ $('Webhook').first().json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "1c4cbdd1-4ba9-4cc2-b0be-0998dc04401c",
+              "name": "company",
+              "value": "={{ $('Webhook').first().json.body.company }}",
+              "type": "string"
+            },
+            {
+              "id": "2644a331-f1fb-4c9e-9ae3-14f6076be07a",
+              "name": "phone",
+              "value": "={{ $('Webhook').first().json.body.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "a623f8f8-4c3d-45f0-83f9-7a5e373b385c",
+              "name": "business_need",
+              "value": "={{ $('Webhook').first().json.body.business_need }}",
+              "type": "string"
+            },
+            {
+              "id": "fcec0ff2-ca0d-4d6a-9c99-eee146343186",
+              "name": "lead_quality",
+              "value": "={{ $json.output.lead_quality }}",
+              "type": "string"
+            },
+            {
+              "id": "c840597d-1795-4541-b0ac-c5c1052cfc86",
+              "name": "priority",
+              "value": "={{ $json.output.priority }}",
+              "type": "string"
+            },
+            {
+              "id": "80667693-fbd3-4a2d-ae49-6718ca16aec1",
+              "name": "good_opportunity",
+              "value": "={{ $json.output.good_opportunity }}",
+              "type": "boolean"
+            },
+            {
+              "id": "4e06ed80-d2d3-4861-a6d4-0eba08684a1b",
+              "name": "reason",
+              "value": "={{ $json.output.reason }}",
+              "type": "string"
+            },
+            {
+              "id": "0f60ed45-461b-4353-89bf-d2c5ce7214c9",
+              "name": "recommended_action",
+              "value": "={{ $json.output.recommended_action }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        48
+      ],
+      "id": "8764a40d-6cb3-4816-9baa-55c66e54d3d6",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Jlz4wQliF659_5ry6U_mQn2IEH9ocfL_WplC6LiRXqQ",
+          "mode": "list",
+          "cachedResultName": "AI Lead Enrichment & CRM Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Jlz4wQliF659_5ry6U_mQn2IEH9ocfL_WplC6LiRXqQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Jlz4wQliF659_5ry6U_mQn2IEH9ocfL_WplC6LiRXqQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "={{ $json.name }}",
+            "email": "={{ $json.email }}",
+            "company": "={{ $json.company }}",
+            "phone": "={{ $json.phone }}",
+            "business_need": "={{ $json.business_need }}",
+            "lead_quality": "={{ $json.lead_quality }}",
+            "priority": "={{ $json.priority }}",
+            "good_opportunity": "={{ $json.good_opportunity }}",
+            "reason": "={{ $json.reason }}",
+            "recommended_action": "={{ $json.recommended_action }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "business_need",
+              "displayName": "business_need",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "lead_quality",
+              "displayName": "lead_quality",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "good_opportunity",
+              "displayName": "good_opportunity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "recommended_action",
+              "displayName": "recommended_action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1072,
+        16
+      ],
+      "id": "b8a6bf6e-eed7-48b5-804a-d3a84911e674",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Kb7x03g3fXfUQBv1",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "717f4264-91ba-4837-a1b0-742f2bea35ed",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7368bf60869be592ce4c3b0da8c989cdd2dfa163501f0d833d65bb7c3a877976"
+  },
+  "nodeGroups": [],
+  "id": "XvMWXxEEteQPmRGk",
+  "tags": []
+}
