@@ -16,6 +16,21 @@ The workflow receives a lead through a **Webhook**, sends the lead data to an **
 
 The result is a structured CRM-ready lead record that can be used by sales teams for faster qualification and follow-up.
 
+### 💼 Business Impact
+
+Instead of manually reviewing every incoming lead, a sales team can receive a structured qualification for each prospect automatically.
+
+The workflow helps sales teams:
+
+- Identify high-priority opportunities faster.
+- Separate promising leads from low-intent prospects.
+- Standardize the qualification process.
+- Reduce repetitive manual data entry.
+- Give sales representatives a clear recommended next action.
+- Create a consistent foundation for future CRM and follow-up automation.
+
+The goal is not to replace the sales team, but to give them better information earlier in the sales process.
+
 ---
 
 ## 🎯 Business Problem
@@ -34,7 +49,7 @@ A typical sales process may require a team member to manually:
 
 When lead volume increases, this process becomes repetitive, inconsistent, and difficult to scale.
 
-### This automation solves that problem by turning:
+### This automation transforms:
 
 **Raw Lead → AI Analysis → Qualification → Prioritization → CRM Record**
 
@@ -46,7 +61,7 @@ The workflow performs the following operations:
 
 - Receives lead data through a Webhook.
 - Sends the lead to an AI Agent.
-- Uses OpenAI for intelligent analysis.
+- Uses an OpenAI Chat Model for intelligent analysis.
 - Produces a structured AI response.
 - Classifies the lead as:
   - `High`
@@ -76,30 +91,30 @@ The workflow performs the following operations:
                     │ Lead Analysis    │
                     └────────┬─────────┘
                              │
-                 ┌───────────┴───────────┐
-                 │                       │
-                 ▼                       ▼
-        ┌─────────────────┐    ┌─────────────────────┐
-        │ OpenAI Chat     │    │ Structured Output   │
-        │ Model            │    │ Parser              │
-        └─────────────────┘    └─────────────────────┘
+              ┌──────────────┴──────────────┐
+              │                             │
+              ▼                             ▼
+      ┌─────────────────┐        ┌─────────────────────┐
+      │ OpenAI Chat     │        │ Structured Output   │
+      │ Model            │        │ Parser              │
+      └─────────────────┘        └─────────────────────┘
                              │
                              ▼
                     ┌──────────────────┐
                     │      Switch      │
                     │  Lead Quality    │
-                    └───────┬──────────┘
-                            │
-              ┌─────────────┼─────────────┐
-              ▼             ▼             ▼
-           High          Medium          Low
-              │             │             │
-              └─────────────┼─────────────┘
-                            │
-                            ▼
+                    └────────┬─────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              ▼              ▼              ▼
+           High           Medium           Low
+              │              │              │
+              └──────────────┼──────────────┘
+                             │
+                             ▼
                     ┌──────────────────┐
                     │    Edit Fields   │
-                    │ Data Normalizing │
+                    │ Data Normalizing  │
                     └────────┬─────────┘
                              │
                              ▼
